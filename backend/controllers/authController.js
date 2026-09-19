@@ -32,10 +32,10 @@ export const signUp=async (req,res)=>{
            
             })
         let token = await genToken(user._id)
-        res.cookie("token",token,{
-            httpOnly:true,
-            secure:false,
-            sameSite: "lax",
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000
         })
         return res.status(201).json(user)
@@ -58,10 +58,10 @@ export const login=async(req,res)=>{
             return res.status(400).json({message:"incorrect Password"})
         }
         let token =await genToken(user._id)
-        res.cookie("token",token,{
-            httpOnly:true,
-            secure:false,
-            sameSite: "lax",
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000
         })
         return res.status(200).json(user)
@@ -95,12 +95,12 @@ export const googleSignup = async (req,res) => {
         })
         }
         let token =await genToken(user._id)
-        res.cookie("token",token,{
-            httpOnly:true,
-            secure:false,
-            sameSite: "lax",
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000
-        })
+            })      
         return res.status(200).json(user)
 
 
