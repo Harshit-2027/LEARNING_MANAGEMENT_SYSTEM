@@ -15,6 +15,33 @@ export const createOrder = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: "Course not found" });
 
+    if (course.price === 0) {
+            const user = await User.findById(userId);
+
+            if (!user) {
+                return res.status(404).json({
+                    message: "User not found"
+                });
+            }
+
+            // Add course to user's enrolled courses
+            if (!user.enrolledCourses.includes(courseId)) {
+                user.enrolledCourses.push(courseId);
+                await user.save();
+            }
+
+            // Add user to course's enrolled students
+            if (!course.enrolledStudents.includes(userId)) {
+                course.enrolledStudents.push(userId);
+                await course.save();
+            }
+
+            return res.status(200).json({
+                free: true,
+                message: "Course enrolled successfully"
+            });
+        }
+
     const options = {
       amount: course.price * 100, // in paisa
       currency: 'INR',
@@ -23,7 +50,8 @@ export const createOrder = async (req, res) => {
 
     const order = await razorpayInstance.orders.create(options);
     return res.status(200).json(order);
-  } catch (err) {
+  } 
+  catch (err) {
     console.log(err)
     return res.status(500).json({ message: `Order creation failed ${err}` });
 

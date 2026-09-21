@@ -129,45 +129,116 @@ console.log("Average Rating:", avgRating);
 }, [creatorData, courseData]);
 
  
+// const handleEnroll = async (courseId, userId) => {
+//   try {
+//     // 1. Create Order
+//     const orderData = await axios.post(serverUrl + "/api/payment/create-order", {
+//       courseId,
+//       userId
+//     } , {withCredentials:true});
+//     console.log(orderData)
+
+//     const options = {
+//       key: import.meta.env.VITE_RAZORPAY_KEY_ID, // from .env
+//       amount: orderData.data.amount,
+//       currency: "INR",
+//       name: "Virtual Courses",
+//       description: "Course Enrollment Payment",
+//       order_id: orderData.data.id,
+//       handler: async function (response) {
+//   console.log("Razorpay Response:", response);
+//   try {
+//     const verifyRes = await axios.post(serverUrl + "/api/payment/verify-payment",{
+//   ...response,       
+//   courseId,
+//   userId
+// }, { withCredentials: true });
+    
+// setIsEnrolled(true)
+//     toast.success(verifyRes.data.message);
+//   } catch (verifyError) {
+//     toast.error("Payment verification failed.");
+//     console.error("Verification Error:", verifyError);
+//   }
+//   },
+//     };
+    
+//     const rzp = new window.Razorpay(options)
+//     rzp.open()
+
+//   } catch (err) {
+//     toast.error("Something went wrong while enrolling.");
+//     console.error("Enroll Error:", err);
+//   }
+// };
+
 const handleEnroll = async (courseId, userId) => {
   try {
-    // 1. Create Order
-    const orderData = await axios.post(serverUrl + "/api/payment/create-order", {
-      courseId,
-      userId
-    } , {withCredentials:true});
-    console.log(orderData)
+    // Create order / handle free course
+    const orderData = await axios.post(
+      serverUrl + "/api/payment/create-order",
+      {
+        courseId,
+        userId
+      },
+      {
+        withCredentials: true
+      }
+    );
 
+    console.log(orderData);
+
+    // FREE COURSE
+    if (orderData.data.free) {
+      setIsEnrolled(true);
+      toast.success(orderData.data.message);
+      return;
+    }
+
+    // PAID COURSE
     const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID, // from .env
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: orderData.data.amount,
       currency: "INR",
       name: "Virtual Courses",
       description: "Course Enrollment Payment",
       order_id: orderData.data.id,
+
       handler: async function (response) {
-  console.log("Razorpay Response:", response);
-  try {
-    const verifyRes = await axios.post(serverUrl + "/api/payment/verify-payment",{
-  ...response,       
-  courseId,
-  userId
-}, { withCredentials: true });
-    
-setIsEnrolled(true)
-    toast.success(verifyRes.data.message);
-  } catch (verifyError) {
-    toast.error("Payment verification failed.");
-    console.error("Verification Error:", verifyError);
-  }
-  },
+        console.log("Razorpay Response:", response);
+
+        try {
+          const verifyRes = await axios.post(
+            serverUrl + "/api/payment/verify-payment",
+            {
+              ...response,
+              courseId,
+              userId
+            },
+            {
+              withCredentials: true
+            }
+          );
+
+          setIsEnrolled(true);
+          toast.success(verifyRes.data.message);
+
+        } catch (verifyError) {
+          toast.error("Payment verification failed.");
+          console.error("Verification Error:", verifyError);
+        }
+      }
     };
-    
-    const rzp = new window.Razorpay(options)
-    rzp.open()
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
 
   } catch (err) {
-    toast.error("Something went wrong while enrolling.");
+    toast.error(
+      err.response?.data?.message ||
+      "Something went wrong while enrolling."
+    );
+
     console.error("Enroll Error:", err);
   }
 };
