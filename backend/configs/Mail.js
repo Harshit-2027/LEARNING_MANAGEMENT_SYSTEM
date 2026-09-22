@@ -4,11 +4,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.EMAIL,
         pass: process.env.EMAIL_PASS,
     },
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 20000,
 });
 
 const sendMail = async (to, otp) => {
@@ -23,7 +28,7 @@ const sendMail = async (to, otp) => {
             `,
         });
 
-        console.log("Email sent:", info.messageId);
+        console.log("Email sent successfully:", info.messageId);
         return info;
     } catch (error) {
         console.log("Email sending error:", error);
